@@ -1,0 +1,202 @@
+package origin
+
+// rule maps a host name, or every host under a domain ("*.gnu.org"), to the
+// organisation that operates it and that organisation's country. The table
+// only holds hosts whose operator is well known; everything else is looked
+// up by network registration.
+type rule struct {
+	pattern string // exact host, or *.domain (which also matches the domain itself)
+	org     string
+	country string
+}
+
+// Country codes are ISO 3166-1 alpha-2; the organisation's seat, not where
+// a particular mirror stands.
+var rules = []rule{
+	// Forges
+	{"*.github.com", "GitHub (Microsoft)", "US"},
+	{"*.githubusercontent.com", "GitHub (Microsoft)", "US"},
+	{"*.github.io", "GitHub (Microsoft)", "US"},
+	{"*.npmjs.org", "GitHub (Microsoft)", "US"},
+	{"*.npmjs.com", "GitHub (Microsoft)", "US"},
+	{"*.gitlab.com", "GitLab", "US"},
+	{"*.gitlab.io", "GitLab", "US"},
+	{"*.bitbucket.org", "Atlassian", "AU"},
+	{"*.bitbucket.io", "Atlassian", "AU"},
+	{"*.codeberg.org", "Codeberg e.V.", "DE"},
+	{"*.gitee.com", "OSChina (Gitee)", "CN"},
+	{"*.launchpad.net", "Canonical", "GB"},
+	{"*.launchpadlibrarian.net", "Canonical", "GB"},
+	{"*.ubuntu.com", "Canonical", "GB"},
+	{"*.sourceforge.net", "Slashdot Media (SourceForge)", "US"},
+	{"*.sourceforge.io", "Slashdot Media (SourceForge)", "US"},
+	{"*.sf.net", "Slashdot Media (SourceForge)", "US"},
+	{"*.pagure.io", "Red Hat (IBM)", "US"},
+	{"*.fedoraproject.org", "Red Hat (IBM)", "US"},
+	{"*.fedorahosted.org", "Red Hat (IBM)", "US"},
+	{"*.redhat.com", "Red Hat (IBM)", "US"},
+	{"*.jboss.org", "Red Hat (IBM)", "US"},
+	{"*.libvirt.org", "Red Hat (IBM)", "US"},
+	{"*.framagit.org", "Framasoft", "FR"},
+	{"*.osdn.net", "OSDN", "JP"},
+
+	// Package registries
+	{"*.pypi.org", "Python Software Foundation", "US"},
+	{"*.pypi.io", "Python Software Foundation", "US"},
+	{"*.pythonhosted.org", "Python Software Foundation", "US"},
+	{"*.python.org", "Python Software Foundation", "US"},
+	{"*.crates.io", "Rust Foundation", "US"},
+	{"*.rust-lang.org", "Rust Foundation", "US"},
+	{"*.rubygems.org", "Ruby Central", "US"},
+	{"*.ruby-lang.org", "Ruby Association", "JP"},
+	{"*.cpan.org", "The Perl and Raku Foundation (CPAN)", "US"},
+	{"*.metacpan.org", "The Perl and Raku Foundation (CPAN)", "US"},
+	{"*.perl.org", "The Perl and Raku Foundation", "US"},
+	{"*.hackage.haskell.org", "Haskell.org", "US"},
+	{"*.haskell.org", "Haskell.org", "US"},
+	{"*.maven.org", "Sonatype (Maven Central)", "US"},
+	{"*.nuget.org", "Microsoft", "US"},
+	{"*.golang.org", "Google", "US"},
+	{"*.go.dev", "Google", "US"},
+	{"*.cran.r-project.org", "R Foundation", "AT"},
+	{"*.r-project.org", "R Foundation", "AT"},
+	{"*.ocaml.org", "OCaml Software Foundation", "FR"},
+	{"*.ctan.org", "TeX Users Group (CTAN)", "US"},
+	{"*.tug.org", "TeX Users Group", "US"},
+
+	// GNU, Linux and the free desktop
+	{"gcc.gnu.org", "Sourceware (Software Freedom Conservancy)", "US"},
+	{"*.sourceware.org", "Sourceware (Software Freedom Conservancy)", "US"},
+	{"*.gnu.org", "Free Software Foundation", "US"},
+	{"*.nongnu.org", "Free Software Foundation", "US"},
+	{"*.fsf.org", "Free Software Foundation", "US"},
+	{"*.kernel.org", "Linux Foundation", "US"},
+	{"*.linuxfoundation.org", "Linux Foundation", "US"},
+	{"*.linux-foundation.org", "Linux Foundation", "US"},
+	{"*.nodejs.org", "OpenJS Foundation (Linux Foundation)", "US"},
+	{"*.openprinting.org", "OpenPrinting (Linux Foundation)", "US"},
+	{"*.freedesktop.org", "freedesktop.org (X.Org Foundation)", "US"},
+	{"*.x.org", "X.Org Foundation", "US"},
+	{"*.mesa3d.org", "freedesktop.org (X.Org Foundation)", "US"},
+	{"*.cairographics.org", "freedesktop.org (X.Org Foundation)", "US"},
+	{"*.fontconfig.org", "freedesktop.org (X.Org Foundation)", "US"},
+	{"*.gnome.org", "GNOME Foundation", "US"},
+	{"*.gtk.org", "GNOME Foundation", "US"},
+	{"*.kde.org", "KDE e.V.", "DE"},
+	{"*.xfce.org", "Xfce", "DE"},
+	{"*.debian.org", "Debian (Software in the Public Interest)", "US"},
+	{"*.debian.net", "Debian (Software in the Public Interest)", "US"},
+	{"*.gentoo.org", "Gentoo Foundation", "US"},
+	{"*.freebsd.org", "FreeBSD Foundation", "US"},
+	{"*.openbsd.org", "OpenBSD Foundation", "CA"},
+	{"*.openssh.com", "OpenBSD Foundation", "CA"},
+	{"*.libressl.org", "OpenBSD Foundation", "CA"},
+
+	// openSUSE and SUSE
+	{"*.opensuse.org", "openSUSE (SUSE)", "DE"},
+	{"*.suse.com", "SUSE", "DE"},
+	{"*.suse.de", "SUSE", "DE"},
+	{"*.suse.cz", "SUSE", "DE"},
+
+	// Foundations and projects with a well-known seat
+	{"*.apache.org", "Apache Software Foundation", "US"},
+	{"*.mozilla.org", "Mozilla Foundation", "US"},
+	{"*.eclipse.org", "Eclipse Foundation", "BE"},
+	{"*.llvm.org", "LLVM Foundation", "US"},
+	{"*.isc.org", "Internet Systems Consortium", "US"},
+	{"*.nlnetlabs.nl", "NLnet Labs", "NL"},
+	{"*.openldap.org", "OpenLDAP Foundation", "US"},
+	{"*.openssl.org", "OpenSSL Software Foundation", "US"},
+	{"*.gnupg.org", "g10 Code", "DE"},
+	{"*.kerberos.org", "MIT Kerberos Consortium", "US"},
+	{"*.mit.edu", "Massachusetts Institute of Technology", "US"},
+	{"*.cmu.edu", "Carnegie Mellon University", "US"},
+	{"*.cyrusimap.org", "Carnegie Mellon University", "US"},
+	{"*.sqlite.org", "Hwaci (SQLite)", "US"},
+	{"*.fossil-scm.org", "Hwaci", "US"},
+	{"*.documentfoundation.org", "The Document Foundation", "DE"},
+	{"*.libreoffice.org", "The Document Foundation", "DE"},
+	{"*.videolan.org", "VideoLAN", "FR"},
+	{"*.xiph.org", "Xiph.Org Foundation", "US"},
+	{"*.unicode.org", "Unicode Consortium", "US"},
+	{"*.iana.org", "IANA (ICANN)", "US"},
+	{"*.ntp.org", "Network Time Foundation", "US"},
+	{"*.wireshark.org", "Wireshark Foundation", "US"},
+	{"*.tcpdump.org", "The Tcpdump Group", "US"},
+	{"*.qt.io", "The Qt Company", "FI"},
+	{"*.kitware.com", "Kitware", "US"},
+	{"*.cmake.org", "Kitware", "US"},
+	{"*.boost.org", "Boost (C++ Alliance)", "US"},
+	{"*.boost.io", "Boost (C++ Alliance)", "US"},
+	{"*.mercurial-scm.org", "Mercurial (Software Freedom Conservancy)", "US"},
+	{"*.imagemagick.org", "ImageMagick Studio", "US"},
+	{"*.ghostscript.com", "Artifex Software", "US"},
+	{"*.artifex.com", "Artifex Software", "US"},
+	{"*.curl.se", "curl (Daniel Stenberg)", "SE"},
+	{"*.haxx.se", "curl (Daniel Stenberg)", "SE"},
+	{"*.lua.org", "Lua.org (PUC-Rio)", "BR"},
+	{"*.erlang.org", "Ericsson", "SE"},
+	{"*.swift.org", "Apple", "US"},
+	{"*.osuosl.org", "Oregon State University Open Source Lab", "US"},
+	{"*.ibiblio.org", "University of North Carolina (ibiblio)", "US"},
+	{"*.lysator.liu.se", "Lysator, Linköping University", "SE"},
+	{"*.inria.fr", "INRIA", "FR"},
+	{"*.cern.ch", "CERN", "CH"},
+	{"*.w1.fi", "w1.fi (Jouni Malinen)", "FI"},
+	{"*.ucw.cz", "Martin Mareš (ucw.cz)", "CZ"},
+	{"*.osgeo.org", "OSGeo", "US"},
+	{"*.hdfgroup.org", "The HDF Group", "US"},
+	{"*.dovecot.org", "Open-Xchange", "DE"},
+	{"*.powerdns.com", "PowerDNS (Open-Xchange)", "NL"},
+	{"*.openvpn.net", "OpenVPN", "US"},
+	{"*.hashicorp.com", "HashiCorp (IBM)", "US"},
+	{"*.nginx.org", "F5", "US"},
+	{"*.haproxy.org", "HAProxy Technologies", "FR"},
+	{"*.tuxfamily.org", "TuxFamily", "FR"},
+	{"*.invisible-island.net", "Thomas E. Dickey", "US"},
+	{"*.invisible-mirror.net", "Thomas E. Dickey", "US"},
+
+	// Companies
+	{"*.googlesource.com", "Google", "US"},
+	{"*.googleapis.com", "Google", "US"},
+	{"*.google.com", "Google", "US"},
+	{"*.chromium.org", "Google", "US"},
+	{"*.googlecode.com", "Google", "US"},
+	{"*.microsoft.com", "Microsoft", "US"},
+	{"*.visualstudio.com", "Microsoft", "US"},
+	{"*.apple.com", "Apple", "US"},
+	{"*.amazonaws.com", "Amazon", "US"},
+	{"*.cloudfront.net", "Amazon", "US"},
+	{"*.oracle.com", "Oracle", "US"},
+	{"*.mysql.com", "Oracle", "US"},
+	{"*.java.net", "Oracle", "US"},
+	{"*.openjdk.org", "Oracle", "US"},
+	{"*.intel.com", "Intel", "US"},
+	{"*.01.org", "Intel", "US"},
+	{"*.nvidia.com", "NVIDIA", "US"},
+	{"*.amd.com", "AMD", "US"},
+	{"*.ibm.com", "IBM", "US"},
+	{"*.meta.com", "Meta", "US"},
+	{"*.facebook.com", "Meta", "US"},
+	{"*.jetbrains.com", "JetBrains", "CZ"},
+	{"*.docker.com", "Docker", "US"},
+	{"*.docker.io", "Docker", "US"},
+}
+
+// countryNames spells out the codes that appear most.
+var countryNames = map[string]string{
+	"US": "United States", "DE": "Germany", "GB": "United Kingdom", "FR": "France", "NL": "Netherlands",
+	"SE": "Sweden", "FI": "Finland", "AT": "Austria", "CH": "Switzerland", "BE": "Belgium", "CZ": "Czechia",
+	"CA": "Canada", "AU": "Australia", "JP": "Japan", "CN": "China", "BR": "Brazil", "IN": "India",
+	"IE": "Ireland", "ES": "Spain", "IT": "Italy", "PL": "Poland", "NO": "Norway", "DK": "Denmark",
+	"RU": "Russia", "KR": "South Korea", "SG": "Singapore", "HK": "Hong Kong", "TW": "Taiwan", "NZ": "New Zealand",
+	"ZA": "South Africa", "LU": "Luxembourg", "EU": "European Union (RIPE)", "UA": "Ukraine", "HU": "Hungary",
+}
+
+// CountryName spells out a code when it is known.
+func CountryName(cc string) string {
+	if n, ok := countryNames[cc]; ok {
+		return n
+	}
+	return cc
+}
